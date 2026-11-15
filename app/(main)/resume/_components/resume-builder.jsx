@@ -114,8 +114,22 @@ export default function ResumeBuilder({ initialContent }) {
 
   const generatePDF = async () => {
     setIsGenerating(true);
+    let exportContainer;
     try {
       const element = document.getElementById("resume-pdf");
+      if (!element) throw new Error("Resume preview was not found.");
+
+      // html2canvas cannot capture content under display: none, so render a
+      // temporary copy offscreen while the PDF is generated.
+      exportContainer = document.createElement("div");
+      exportContainer.style.position = "fixed";
+      exportContainer.style.left = "-10000px";
+      exportContainer.style.top = "0";
+      exportContainer.style.width = "800px";
+      exportContainer.style.background = "white";
+      exportContainer.appendChild(element.cloneNode(true));
+      document.body.appendChild(exportContainer);
+
       const opt = {
         margin: [15, 15],
         filename: "resume.pdf",
@@ -124,10 +138,11 @@ export default function ResumeBuilder({ initialContent }) {
         jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       };
 
-      await html2pdf().set(opt).from(element).save();
+      await html2pdf().set(opt).from(exportContainer.firstElementChild).save();
     } catch (error) {
       console.error("PDF generation error:", error);
     } finally {
+      exportContainer?.remove();
       setIsGenerating(false);
     }
   };

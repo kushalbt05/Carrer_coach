@@ -85,7 +85,20 @@ export default function Quiz() {
   };
 
   if (generatingQuiz) {
-    return <BarLoader className="mt-4" width={"100%"} color="gray" />;
+    return (
+      <Card className="mx-2">
+        <CardHeader>
+          <CardTitle>Preparing your quiz</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-muted-foreground">
+            Creating 5 questions tailored to your industry and skills. This
+            usually takes a few seconds.
+          </p>
+          <BarLoader width="100%" color="gray" />
+        </CardContent>
+      </Card>
+    );
   }
 
   // Show results if quiz is completed
@@ -105,7 +118,7 @@ export default function Quiz() {
         </CardHeader>
         <CardContent>
           <p className="text-muted-foreground">
-            This quiz contains 10 questions specific to your industry and
+            This quiz contains 5 questions specific to your industry and
             skills. Take your time and choose the best answer for each question.
           </p>
         </CardContent>

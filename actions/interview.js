@@ -5,7 +5,9 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Use the lighter model first for faster quiz startup; retry on Gemini 3.8 if
+// the lightweight endpoint is temporarily at capacity.
+const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
 
 export async function generateQuiz() {
   const { userId } = await auth();
@@ -22,39 +24,56 @@ export async function generateQuiz() {
   if (!user) throw new Error("User not found");
   if (!user.industry) throw new Error("Please complete your profile first by selecting an industry in onboarding");
 
-  const prompt = `
-    Generate 10 technical interview questions for a ${
-      user.industry
-    } professional${
-    user.skills?.length ? ` with expertise in ${user.skills.join(", ")}` : ""
-  }.
-    
-    Each question should be multiple choice with 4 options.
-    
-    Return the response in this JSON format only, no additional text:
-    {
-      "questions": [
-        {
-          "question": "string",
-          "options": ["string", "string", "string", "string"],
-          "correctAnswer": "string",
-          "explanation": "string"
-        }
-      ]
-    }
-  `;
+  const questionCount = 5;
+  const prompt = `Create exactly ${questionCount} concise multiple-choice technical interview questions for a professional in ${user.industry}${user.skills?.length ? `, focusing on ${user.skills.join(", ")}` : ""}. Each question must have exactly 4 short options, a correctAnswer identical to one option, and an explanation of at most one sentence. Return only this JSON shape: {"questions":[{"question":"...","options":["...","...","...","..."],"correctAnswer":"...","explanation":"..."}]}`;
 
   try {
-    const result = await model.generateContent(prompt);
+    const request = {
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: "application/json",
+        temperature: 0.2,
+        maxOutputTokens: 1600,
+      },
+    };
+
+    let result;
+    try {
+      result = await model.generateContent(request);
+    } catch (error) {
+      const isCapacityError =
+        error.status === 503 || /\b503\b|high demand|service unavailable/i.test(error.message);
+      if (!isCapacityError) throw error;
+
+      // Retry temporary Gemini capacity spikes on a lighter model.
+      const fallbackModel = genAI.getGenerativeModel({ model: "gemini-3.8-flash" });
+      result = await fallbackModel.generateContent(request);
+    }
+
     const response = result.response;
     const text = response.text();
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const quiz = JSON.parse(cleanedText);
 
+    if (
+      !Array.isArray(quiz.questions) ||
+      quiz.questions.length !== questionCount ||
+      quiz.questions.some(
+        (question) =>
+          typeof question.question !== "string" ||
+          !Array.isArray(question.options) ||
+          question.options.length !== 4 ||
+          !question.options.includes(question.correctAnswer) ||
+          typeof question.explanation !== "string"
+      )
+    ) {
+      throw new Error("Gemini returned questions in an unexpected format.");
+    }
+
     return quiz.questions;
   } catch (error) {
     console.error("Error generating quiz:", error);
-    throw new Error("Failed to generate quiz questions");
+    throw new Error(`Failed to generate quiz questions: ${error.message}`);
   }
 }
 

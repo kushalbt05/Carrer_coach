@@ -5,7 +5,7 @@ import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
@@ -36,7 +36,7 @@ export async function generateCoverLetter(data) {
     1. Use a professional, enthusiastic tone
     2. Highlight relevant skills and experience
     3. Show understanding of the company's needs
-    4. Keep it concise (max 400 words)
+    4. Keep it concise (max 300 words)
     5. Use proper business letter formatting in markdown
     6. Include specific examples of achievements
     7. Relate candidate's background to job requirements
@@ -61,8 +61,8 @@ export async function generateCoverLetter(data) {
 
     return coverLetter;
   } catch (error) {
-    console.error("Error generating cover letter:", error.message);
-    throw new Error("Failed to generate cover letter");
+    console.error("Error generating cover letter:", error);
+    throw new Error(`Failed to generate cover letter: ${error.message}`);
   }
 }
 
