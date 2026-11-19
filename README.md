@@ -10,7 +10,7 @@ Elevate Career AI is an AI-powered career development platform designed to help 
 - Clerk authentication
 - Google Gemini API
 
-**Local setup:** Run `npm run dev` from the project folder, then open the `Local:` URL printed by Next.js. This address is local to the computer running the server; no public demo has been deployed yet.
+**Local app:** [http://localhost:3000](http://localhost:3000). Run `npm run dev` from the project folder and keep the server running. If Next.js reports that port 3000 is occupied, open the alternate `Local:` URL it prints. This address is local to the computer running the server; no public demo has been deployed yet.
 
 ## Features
 
