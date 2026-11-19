@@ -2,7 +2,7 @@
 
 Elevate Career AI is an AI-assisted career development web application. Users create a career profile, then use the dashboard to explore industry insights, build and improve a resume, practice interview questions, and draft job-specific cover letters. The application is built with Next.js and uses Clerk for authentication, PostgreSQL for saved data, and Gemini for generated content.
 
-**Local app:** [http://localhost:3004](http://localhost:3004) (current development server; Next.js may choose another port if 3004 is occupied). A public demo has not been configured.
+**Local app:** [http://localhost:3004](http://localhost:3004). Start the development server with `npm run dev -- --port 3004` and keep its terminal open while using the app. A public demo has not been configured.
 
 ## Features
 
@@ -16,7 +16,13 @@ Elevate Career AI is an AI-assisted career development web application. Users cr
 
 ## Screenshots
 
-Screenshots are not currently included in this repository. Add genuine captures of the landing page and signed-in career tools to `docs/screenshots/`, then embed them here. Avoid including real user or credential data in screenshots.
+### Industry Insights
+
+![Industry Insights dashboard](docs/screenshots/industry-insights.png)
+
+### Interview Preparation
+
+![Interview Preparation dashboard](docs/screenshots/interview-preparation.png)
 
 ## Technology stack
 
@@ -84,7 +90,9 @@ Inngest exposes its handler at `/api/inngest`. Its scheduled function in `lib/in
    npm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) and sign in through Clerk. For local Inngest development, start the Inngest dev server in another terminal and connect it to `http://localhost:3000/api/inngest`.
+6. Open [http://localhost:3004](http://localhost:3004) and sign in through Clerk. If port 3004 is occupied, use the `Local:` URL printed by Next.js instead. For local Inngest development, start the Inngest dev server in another terminal and connect it to `http://localhost:3004/api/inngest` (or the port printed by Next.js).
+
+   On Windows, open PowerShell in the folder containing `package.json`, run `npm run dev`, and leave that terminal open. Wait for `Ready`, then open the exact `Local:` address shown in that terminal. If the terminal closes or the server stops, the localhost link stops responding.
 
 ## Environment variables
 
