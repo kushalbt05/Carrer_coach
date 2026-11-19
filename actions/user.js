@@ -3,10 +3,21 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
+
+const updateUserSchema = z.object({
+  industry: z.string().trim().min(1).max(120),
+  experience: z.coerce.number().int().min(0).max(50),
+  bio: z.string().trim().max(500).optional(),
+  skills: z.array(z.string().trim().min(1).max(80)).max(50).optional(),
+});
 
 export async function updateUser(data) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  const parsedData = updateUserSchema.safeParse(data);
+  if (!parsedData.success) throw new Error("Please provide a valid career profile.");
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -20,10 +31,10 @@ export async function updateUser(data) {
     await db.user.update({
       where: { id: user.id },
       data: {
-        industry: data.industry,
-        experience: data.experience,
-        bio: data.bio,
-        skills: data.skills,
+        industry: parsedData.data.industry,
+        experience: parsedData.data.experience,
+        bio: parsedData.data.bio,
+        skills: parsedData.data.skills,
       },
     });
     revalidatePath("/");

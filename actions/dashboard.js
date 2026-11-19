@@ -3,11 +3,28 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { z } from "zod";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-3.8-flash" });
 
-export const generateAIInsights = async (industry) => {
+const industryInsightsSchema = z.object({
+  salaryRanges: z.array(z.object({
+    role: z.string().min(1),
+    min: z.number(),
+    max: z.number(),
+    median: z.number(),
+    location: z.string(),
+  })).min(5),
+  growthRate: z.number(),
+  demandLevel: z.enum(["High", "Medium", "Low"]),
+  topSkills: z.array(z.string().min(1)).min(5),
+  marketOutlook: z.enum(["Positive", "Neutral", "Negative"]),
+  keyTrends: z.array(z.string().min(1)).min(5),
+  recommendedSkills: z.array(z.string().min(1)).min(1),
+});
+
+async function generateAIInsights(industry) {
   const prompt = `
           Analyze the current state of the ${industry} industry and provide insights in ONLY the following JSON format without any additional notes or explanations:
           {
@@ -33,8 +50,12 @@ export const generateAIInsights = async (industry) => {
   const text = response.text();
   const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
 
-  return JSON.parse(cleanedText);
-};
+  const parsed = industryInsightsSchema.safeParse(JSON.parse(cleanedText));
+  if (!parsed.success) {
+    throw new Error("Gemini returned industry insights in an unexpected format.");
+  }
+  return parsed.data;
+}
 
 export async function getIndustryInsights() {
   const { userId } = await auth();

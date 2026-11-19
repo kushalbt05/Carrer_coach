@@ -3,11 +3,30 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { z } from "zod";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 // Use the lighter model first for faster quiz startup; retry on Gemini 3.8 if
 // the lightweight endpoint is temporarily at capacity.
 const model = genAI.getGenerativeModel({ model: "gemini-3.5-flash-lite" });
+const quizQuestionSchema = z.object({
+  question: z.string().trim().min(1).max(1000),
+  options: z.array(z.string().trim().min(1).max(300)).length(4),
+  correctAnswer: z.string().trim().min(1).max(300),
+  explanation: z.string().trim().max(1000),
+}).refine((question) => question.options.includes(question.correctAnswer));
+const signedQuizSchema = z.object({
+  userId: z.string().min(1),
+  issuedAt: z.number().int().positive(),
+  questions: z.array(quizQuestionSchema).length(5),
+});
+
+function signQuizPayload(payload) {
+  const secret = process.env.CLERK_SECRET_KEY;
+  if (!secret) throw new Error("Quiz signing is not configured.");
+  return createHmac("sha256", secret).update(payload).digest("base64url");
+}
 
 export async function generateQuiz() {
   const { userId } = await auth();
@@ -55,31 +74,71 @@ export async function generateQuiz() {
     const cleanedText = text.replace(/```(?:json)?\n?/g, "").trim();
     const quiz = JSON.parse(cleanedText);
 
-    if (
-      !Array.isArray(quiz.questions) ||
-      quiz.questions.length !== questionCount ||
-      quiz.questions.some(
-        (question) =>
-          typeof question.question !== "string" ||
-          !Array.isArray(question.options) ||
-          question.options.length !== 4 ||
-          !question.options.includes(question.correctAnswer) ||
-          typeof question.explanation !== "string"
-      )
-    ) {
+    const parsedQuestions = z.array(quizQuestionSchema).length(questionCount).safeParse(quiz.questions);
+    if (!parsedQuestions.success) {
       throw new Error("Gemini returned questions in an unexpected format.");
     }
 
-    return quiz.questions;
+    const payload = Buffer.from(JSON.stringify({
+      userId,
+      issuedAt: Date.now(),
+      questions: parsedQuestions.data,
+    })).toString("base64url");
+
+    return {
+      questions: parsedQuestions.data,
+      token: `${payload}.${signQuizPayload(payload)}`,
+    };
   } catch (error) {
     console.error("Error generating quiz:", error);
     throw new Error(`Failed to generate quiz questions: ${error.message}`);
   }
 }
 
-export async function saveQuizResult(questions, answers, score) {
+export async function saveQuizResult(token, answers) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  if (typeof token !== "string" || token.length > 20000) {
+    throw new Error("Invalid quiz submission.");
+  }
+
+  const [payload, signature, ...extraParts] = token.split(".");
+  if (!payload || !signature || extraParts.length) {
+    throw new Error("Invalid quiz submission.");
+  }
+
+  const expectedSignature = Buffer.from(signQuizPayload(payload), "base64url");
+  const submittedSignature = Buffer.from(signature, "base64url");
+  if (
+    expectedSignature.length !== submittedSignature.length ||
+    !timingSafeEqual(expectedSignature, submittedSignature)
+  ) {
+    throw new Error("Invalid quiz submission.");
+  }
+
+  let decodedPayload;
+  try {
+    decodedPayload = JSON.parse(Buffer.from(payload, "base64url").toString("utf8"));
+  } catch {
+    throw new Error("Invalid quiz submission.");
+  }
+
+  const parsedQuiz = signedQuizSchema.safeParse(decodedPayload);
+  if (!parsedQuiz.success || parsedQuiz.data.userId !== userId) {
+    throw new Error("Invalid quiz submission.");
+  }
+  if (Date.now() - parsedQuiz.data.issuedAt > 30 * 60 * 1000 || parsedQuiz.data.issuedAt > Date.now() + 60_000) {
+    throw new Error("This quiz has expired. Please start a new quiz.");
+  }
+
+  const parsedAnswers = z.array(z.string().trim().min(1).max(300)).length(parsedQuiz.data.questions.length).safeParse(answers);
+  if (
+    !parsedAnswers.success ||
+    parsedAnswers.data.some((answer, index) => !parsedQuiz.data.questions[index].options.includes(answer))
+  ) {
+    throw new Error("Please answer every question using one of the provided options.");
+  }
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -87,13 +146,14 @@ export async function saveQuizResult(questions, answers, score) {
 
   if (!user) throw new Error("User not found");
 
-  const questionResults = questions.map((q, index) => ({
+  const questionResults = parsedQuiz.data.questions.map((q, index) => ({
     question: q.question,
     answer: q.correctAnswer,
-    userAnswer: answers[index],
-    isCorrect: q.correctAnswer === answers[index],
+    userAnswer: parsedAnswers.data[index],
+    isCorrect: q.correctAnswer === parsedAnswers.data[index],
     explanation: q.explanation,
   }));
+  const score = (questionResults.filter((question) => question.isCorrect).length / questionResults.length) * 100;
 
   // Get wrong answers
   const wrongAnswers = questionResults.filter((q) => !q.isCorrect);
@@ -123,7 +183,6 @@ export async function saveQuizResult(questions, answers, score) {
       const tipResult = await model.generateContent(improvementPrompt);
 
       improvementTip = tipResult.response.text().trim();
-      console.log(improvementTip);
     } catch (error) {
       console.error("Error generating improvement tip:", error);
       // Continue without improvement tip if generation fails

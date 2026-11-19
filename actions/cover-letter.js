@@ -3,6 +3,7 @@
 import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
+import { coverLetterSchema } from "@/app/lib/schema";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
@@ -10,6 +11,10 @@ const model = genAI.getGenerativeModel({ model: "gemini-3.1-flash-lite" });
 export async function generateCoverLetter(data) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  const parsedData = coverLetterSchema.safeParse(data);
+  if (!parsedData.success) throw new Error("Please provide valid job details.");
+  data = parsedData.data;
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -62,7 +67,7 @@ export async function generateCoverLetter(data) {
     return coverLetter;
   } catch (error) {
     console.error("Error generating cover letter:", error);
-    throw new Error(`Failed to generate cover letter: ${error.message}`);
+    throw new Error("Failed to generate cover letter. Please try again.");
   }
 }
 

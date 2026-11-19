@@ -4,6 +4,7 @@ import { db } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-3.8-flash" });
@@ -11,6 +12,9 @@ const model = genAI.getGenerativeModel({ model: "gemini-3.8-flash" });
 export async function saveResume(content) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  const parsedContent = z.string().trim().min(1).max(50000).safeParse(content);
+  if (!parsedContent.success) throw new Error("Resume content must be between 1 and 50,000 characters.");
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },
@@ -24,11 +28,11 @@ export async function saveResume(content) {
         userId: user.id,
       },
       update: {
-        content,
+        content: parsedContent.data,
       },
       create: {
         userId: user.id,
-        content,
+        content: parsedContent.data,
       },
     });
 
@@ -57,9 +61,16 @@ export async function getResume() {
   });
 }
 
-export async function improveWithAI({ current, type }) {
+export async function improveWithAI(input) {
   const { userId } = await auth();
   if (!userId) throw new Error("Unauthorized");
+
+  const parsedInput = z.object({
+    current: z.string().trim().min(1).max(20000),
+    type: z.string().trim().min(1).max(100),
+  }).safeParse(input);
+  if (!parsedInput.success) throw new Error("Please provide valid resume content to improve.");
+  const { current, type } = parsedInput.data;
 
   const user = await db.user.findUnique({
     where: { clerkUserId: userId },

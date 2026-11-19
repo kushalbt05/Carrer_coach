@@ -36,10 +36,12 @@ export default function Quiz() {
   } = useFetch(saveQuizResult);
 
   useEffect(() => {
-    if (quizData) {
-      setAnswers(new Array(quizData.length).fill(null));
+    if (quizData?.questions) {
+      setAnswers(new Array(quizData.questions.length).fill(null));
     }
   }, [quizData]);
+
+  const questions = quizData?.questions ?? [];
 
   const handleAnswer = (answer) => {
     const newAnswers = [...answers];
@@ -48,7 +50,7 @@ export default function Quiz() {
   };
 
   const handleNext = () => {
-    if (currentQuestion < quizData.length - 1) {
+    if (currentQuestion < questions.length - 1) {
       setCurrentQuestion(currentQuestion + 1);
       setShowExplanation(false);
     } else {
@@ -56,20 +58,9 @@ export default function Quiz() {
     }
   };
 
-  const calculateScore = () => {
-    let correct = 0;
-    answers.forEach((answer, index) => {
-      if (answer === quizData[index].correctAnswer) {
-        correct++;
-      }
-    });
-    return (correct / quizData.length) * 100;
-  };
-
   const finishQuiz = async () => {
-    const score = calculateScore();
     try {
-      await saveQuizResultFn(quizData, answers, score);
+      await saveQuizResultFn(quizData.token, answers);
       toast.success("Quiz completed!");
     } catch (error) {
       toast.error(error.message || "Failed to save quiz results");
@@ -131,13 +122,13 @@ export default function Quiz() {
     );
   }
 
-  const question = quizData[currentQuestion];
+  const question = questions[currentQuestion];
 
   return (
     <Card className="mx-2">
       <CardHeader>
         <CardTitle>
-          Question {currentQuestion + 1} of {quizData.length}
+          Question {currentQuestion + 1} of {questions.length}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -180,7 +171,7 @@ export default function Quiz() {
           {savingResult && (
             <BarLoader className="mt-4" width={"100%"} color="gray" />
           )}
-          {currentQuestion < quizData.length - 1
+          {currentQuestion < questions.length - 1
             ? "Next Question"
             : "Finish Quiz"}
         </Button>

@@ -1,8 +1,16 @@
-# Elevate Career
+# Elevate Career AI 🚀
 
-Elevate Career AI is an AI-assisted career development web application. Users create a career profile, then use the dashboard to explore industry insights, build and improve a resume, practice interview questions, and draft job-specific cover letters. The application is built with Next.js and uses Clerk for authentication, PostgreSQL for saved data, and Gemini for generated content.
+Elevate Career AI is an AI-powered career development platform designed to help users improve their career readiness. It brings together resume building, AI-powered mock interviews, cover letter generation, and industry insights.
 
-**Local app:** [http://localhost:3001](http://localhost:3001). Port 3000 is occupied on the current development machine. To open the app, run `npm run dev` from this project folder and keep the server running; if Next.js selects another port, use the `Local:` URL it prints. This local address works on your computer only; a public demo has not been deployed yet.
+## Key Technologies
+
+- Next.js and React
+- JavaScript and Tailwind CSS
+- Prisma and PostgreSQL
+- Clerk authentication
+- Google Gemini API
+
+**Local setup:** Run `npm run dev` from the project folder, then open the `Local:` URL printed by Next.js. This address is local to the computer running the server; no public demo has been deployed yet.
 
 ## Features
 
@@ -90,7 +98,7 @@ Inngest exposes its handler at `/api/inngest`. Its scheduled function in `lib/in
    npm run dev
    ```
 
-6. Open [http://localhost:3001](http://localhost:3001) and sign in through Clerk. If Next.js selects another port, use the `Local:` URL printed in the terminal. For local Inngest development, start the Inngest dev server in another terminal and connect it to `http://localhost:3001/api/inngest` (or the port printed by Next.js).
+6. Open the `Local:` URL printed in the terminal (usually `http://localhost:3000`) and sign in through Clerk. If that port is occupied, use the URL for the next port printed by Next.js. For local Inngest development, start the Inngest dev server in another terminal and connect it to `<Local URL>/api/inngest`.
 
    On Windows, open PowerShell in the folder containing `package.json`, run `npm run dev`, and leave that terminal open. Wait for `Ready`, then open the exact `Local:` address shown in that terminal. If the terminal closes or the server stops, the localhost link stops responding.
 
@@ -141,4 +149,4 @@ ARCHITECTURE.md       System diagram and request flow notes
 
 ## Repository description
 
-Suggested GitHub About description: **AI-powered career toolkit for resume building, interview practice, cover letters, and industry insights.**
+Elevate Career AI is an AI-powered career development platform designed to help users improve their career readiness. It brings together resume building, AI-powered mock interviews, cover letter generation, and industry insights.

@@ -66,7 +66,7 @@ export const resumeSchema = z.object({
 });
 
 export const coverLetterSchema = z.object({
-  companyName: z.string().min(1, "Company name is required"),
-  jobTitle: z.string().min(1, "Job title is required"),
-  jobDescription: z.string().min(1, "Job description is required"),
+  companyName: z.string().trim().min(1, "Company name is required").max(200),
+  jobTitle: z.string().trim().min(1, "Job title is required").max(200),
+  jobDescription: z.string().trim().min(1, "Job description is required").max(20000),
 });
