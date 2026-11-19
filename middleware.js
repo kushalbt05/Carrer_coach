@@ -19,8 +19,10 @@ export default clerkMiddleware(async (auth, req) => {
 
   return NextResponse.next();
 }, {
-  // Clerk production instance is configured to use this app as its FAPI proxy.
-  proxyUrl: "/__clerk",
+  // Forward Clerk frontend API requests through this app in production.
+  frontendApiProxy: {
+    enabled: true,
+  },
 });
 
 export const config = {
