@@ -2,7 +2,7 @@
 
 Elevate Career AI is an AI-assisted career development web application. Users create a career profile, then use the dashboard to explore industry insights, build and improve a resume, practice interview questions, and draft job-specific cover letters. The application is built with Next.js and uses Clerk for authentication, PostgreSQL for saved data, and Gemini for generated content.
 
-**Live demo:** Add the deployed application URL here after confirming the deployment is publicly available.
+**Local app:** [http://localhost:3002](http://localhost:3002) (when the development server is running; Next.js may choose another port if 3002 is occupied). A public demo has not been configured.
 
 ## Features
 
