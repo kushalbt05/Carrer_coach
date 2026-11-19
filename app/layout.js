@@ -14,6 +14,9 @@ export const metadata = {
   description: "Your AI-powered career companion for resume building, interview preparation, and professional development.",
 };
 
+// Clerk-backed pages depend on request state; avoid static prerendering its UI.
+export const dynamic = "force-dynamic";
+
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider
