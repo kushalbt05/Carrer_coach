@@ -10,7 +10,7 @@ Elevate Career AI is an AI-powered career development platform designed to help 
 - Clerk authentication
 - Google Gemini API
 
-**Local app:** [http://localhost:3000](http://localhost:3000). Run `npm run dev` from the project folder and keep the server running. If Next.js reports that port 3000 is occupied, open the alternate `Local:` URL it prints. This address is local to the computer running the server; no public demo has been deployed yet.
+**Local app:** [http://localhost:3002](http://localhost:3002). Run `npm run dev` from the project folder and keep the server running. Ports 3000 and 3001 are occupied on the current development machine; if Next.js selects another port, open the `Local:` URL it prints. This address is local to the computer running the server; no public demo has been deployed yet.
 
 ## Features
 
@@ -98,7 +98,7 @@ Inngest exposes its handler at `/api/inngest`. Its scheduled function in `lib/in
    npm run dev
    ```
 
-6. Open the `Local:` URL printed in the terminal (usually `http://localhost:3000`) and sign in through Clerk. If that port is occupied, use the URL for the next port printed by Next.js. For local Inngest development, start the Inngest dev server in another terminal and connect it to `<Local URL>/api/inngest`.
+6. Open [http://localhost:3002](http://localhost:3002) and sign in through Clerk. If Next.js selects another port, use the `Local:` URL printed in the terminal. For local Inngest development, start the Inngest dev server in another terminal and connect it to `http://localhost:3002/api/inngest` (or the port printed by Next.js).
 
    On Windows, open PowerShell in the folder containing `package.json`, run `npm run dev`, and leave that terminal open. Wait for `Ready`, then open the exact `Local:` address shown in that terminal. If the terminal closes or the server stops, the localhost link stops responding.
 
