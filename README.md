@@ -2,7 +2,7 @@
 
 Elevate Career AI is an AI-assisted career development web application. Users create a career profile, then use the dashboard to explore industry insights, build and improve a resume, practice interview questions, and draft job-specific cover letters. The application is built with Next.js and uses Clerk for authentication, PostgreSQL for saved data, and Gemini for generated content.
 
-**Local app:** [http://localhost:3000](http://localhost:3000). To open it, run `npm run dev` from this project folder and keep the development server running. This local address works on your computer only; a public demo has not been deployed yet.
+**Local app:** [http://localhost:3001](http://localhost:3001). Port 3000 is occupied on the current development machine. To open the app, run `npm run dev` from this project folder and keep the server running; if Next.js selects another port, use the `Local:` URL it prints. This local address works on your computer only; a public demo has not been deployed yet.
 
 ## Features
 
@@ -90,7 +90,7 @@ Inngest exposes its handler at `/api/inngest`. Its scheduled function in `lib/in
    npm run dev
    ```
 
-6. Open [http://localhost:3000](http://localhost:3000) and sign in through Clerk. If port 3000 is occupied, use the `Local:` URL printed by Next.js instead. For local Inngest development, start the Inngest dev server in another terminal and connect it to `http://localhost:3000/api/inngest` (or the port printed by Next.js).
+6. Open [http://localhost:3001](http://localhost:3001) and sign in through Clerk. If Next.js selects another port, use the `Local:` URL printed in the terminal. For local Inngest development, start the Inngest dev server in another terminal and connect it to `http://localhost:3001/api/inngest` (or the port printed by Next.js).
 
    On Windows, open PowerShell in the folder containing `package.json`, run `npm run dev`, and leave that terminal open. Wait for `Ready`, then open the exact `Local:` address shown in that terminal. If the terminal closes or the server stops, the localhost link stops responding.
 
