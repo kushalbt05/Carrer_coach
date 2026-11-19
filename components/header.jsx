@@ -9,7 +9,7 @@ import {
   StarsIcon,
 } from "lucide-react";
 import Link from "next/link";
-import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/nextjs";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -90,9 +90,9 @@ export default async function Header() {
           </SignedIn>
 
           <SignedOut>
-            <SignInButton>
-              <Button variant="outline">Sign In</Button>
-            </SignInButton>
+            <Button asChild variant="outline">
+              <Link href="/sign-in">Sign In</Link>
+            </Button>
           </SignedOut>
 
           <SignedIn>

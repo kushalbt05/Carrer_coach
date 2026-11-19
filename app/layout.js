@@ -17,6 +17,9 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ClerkProvider
+      proxyUrl="/__clerk"
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
       appearance={{
         baseTheme: dark,
       }}
