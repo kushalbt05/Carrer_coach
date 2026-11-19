@@ -62,6 +62,22 @@ Inngest exposes its handler at `/api/inngest`. Its scheduled function in `lib/in
 - Google Gemini API key
 - An Inngest account/dev server to run and inspect scheduled functions
 
+## Deploy to Vercel
+
+Vercel detects this Next.js application automatically. To create a public deployment:
+
+1. Import `kushalbt05/Carrer_coach` from GitHub in Vercel.
+2. Add these environment variables to the Vercel project without committing their values:
+   - `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` — Clerk production publishable key
+   - `CLERK_SECRET_KEY` — Clerk production secret key
+   - `DATABASE_URL` — production PostgreSQL connection string
+   - `GEMINI_API_KEY` — Google AI Studio API key
+3. Configure the production Clerk instance for the deployed domain. Clerk production keys are required for production; use an owned domain for the production Clerk deployment.
+4. Apply the checked-in Prisma migrations to the production database with `npx prisma migrate deploy` before serving production traffic.
+5. Deploy from Vercel, then connect the deployed `/api/inngest` endpoint in Inngest if scheduled industry updates are needed.
+
+Do not use development Clerk keys or a local `.env` file as production configuration. Add the deployed URL to this README once the Vercel deployment is complete.
+
 ## Local installation
 
 1. Clone the repository and enter the project directory:
