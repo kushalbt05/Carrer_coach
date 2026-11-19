@@ -11,7 +11,8 @@ export default function LegalPage() {
   useEffect(() => {
     // Get the hash from the URL to set the active tab
     const hash =
-      searchParams.get("tab") || window.location.hash.replace("#", "");
+      searchParams.get("tab") ||
+      (typeof window !== "undefined" ? window.location.hash.replace("#", "") : "");
     if (hash && ["terms", "privacy", "cookies"].includes(hash)) {
       setActiveTab(hash);
     }
